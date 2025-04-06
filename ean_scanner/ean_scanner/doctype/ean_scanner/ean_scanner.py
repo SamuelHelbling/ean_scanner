@@ -101,6 +101,20 @@ class EANScanner(Document):
 				"company": frappe.defaults.get_user_default("Company")
 			})
 			
+			# Add serving unit if available
+			if product.get("serving_quantity") and product.get("serving_quantity_unit"):
+				serving_qty = float(product["serving_quantity"])
+				serving_unit = product["serving_quantity_unit"]
+				
+				# Ensure UOM exists
+				self._ensure_uom_exists(serving_unit)
+				
+				# Add UOM conversion
+				item.append("uoms", {
+					"uom": serving_unit,
+					"conversion_factor": serving_qty
+				})
+			
 			# Add additional product information if available
 			if product.get("brands"):
 				brand_name = product.get("brands").split(",")[0].strip()
@@ -126,6 +140,18 @@ class EANScanner(Document):
 		except Exception as e:
 			frappe.log_error(f"Error creating item: {e}", "EAN Scanner Error")
 			return None
+	
+	def _ensure_uom_exists(self, uom_name):
+		"""Ensure that a UOM exists in the system, create it if needed"""
+		if not frappe.db.exists("UOM", uom_name):
+			try:
+				uom = frappe.new_doc("UOM")
+				uom.uom_name = uom_name
+				uom.enabled = 1
+				uom.insert(ignore_permissions=True)
+				frappe.msgprint(f"Created new UOM: {uom_name}")
+			except Exception as e:
+				frappe.log_error(f"Error creating UOM {uom_name}: {e}", "EAN Scanner Error")
 	
 	def _process_category_hierarchy(self, categories):
 		"""
