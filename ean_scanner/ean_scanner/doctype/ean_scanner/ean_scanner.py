@@ -258,3 +258,100 @@ class EANScanner(Document):
 		stock_entry.submit()
 		
 		return stock_entry.name
+
+
+@frappe.whitelist()
+def update_item_from_off(item_code):
+	"""Update an item from Open Food Facts based on its EAN barcode"""
+	try:
+		# Get the item and check if it has a barcode
+		item = frappe.get_doc("Item", item_code)
+		
+		# Find the first EAN barcode
+		ean_barcode = None
+		for barcode in item.barcodes:
+			if barcode.barcode_type == "EAN" and barcode.barcode:
+				ean_barcode = barcode.barcode
+				break
+				
+		if not ean_barcode:
+			frappe.msgprint("No EAN barcode found for this item")
+			return False
+			
+		# Call Open Food Facts API
+		api_url = f"https://world.openfoodfacts.org/api/v0/product/{ean_barcode}.json"
+		response = requests.get(api_url, headers={"User-Agent": "EANScanner/1.0 (eanscanner@example.com)"})
+		
+		if response.status_code != 200:
+			frappe.throw(f"API returned status code {response.status_code}")
+			
+		data = response.json()
+		
+		# Check if the product was found
+		if data.get("status") != 1:
+			frappe.msgprint(f"Product not found in Open Food Facts database for barcode: {ean_barcode}")
+			return False
+			
+		product = data.get("product", {})
+		
+		# Update item fields
+		if product.get("product_name"):
+			item.item_name = product.get("product_name")
+			
+		if product.get("generic_name") or product.get("product_name"):
+			item.description = product.get("generic_name") or product.get("product_name")
+			
+		# Process category hierarchy if available
+		if product.get("categories_hierarchy"):
+			scanner = frappe.get_doc("EAN Scanner", "EAN Scanner")
+			item_group = scanner._process_category_hierarchy(product["categories_hierarchy"])
+			item.item_group = item_group
+			
+		# Add or update serving unit if available
+		if product.get("serving_quantity") and product.get("serving_quantity_unit"):
+			serving_qty = float(product["serving_quantity"])
+			serving_unit = product["serving_quantity_unit"]
+			
+			# Ensure UOM exists
+			scanner = frappe.get_doc("EAN Scanner", "EAN Scanner")
+			scanner._ensure_uom_exists(serving_unit)
+			
+			# Check if UOM already exists in the item
+			uom_exists = False
+			for uom in item.uoms:
+				if uom.uom == serving_unit:
+					uom.conversion_factor = serving_qty
+					uom_exists = True
+					break
+					
+			# Add UOM if it doesn't exist
+			if not uom_exists:
+				item.append("uoms", {
+					"uom": serving_unit,
+					"conversion_factor": serving_qty
+				})
+				
+		# Update brand if available
+		if product.get("brands"):
+			brand_name = product.get("brands").split(",")[0].strip()
+			# Check if brand exists, create it if it doesn't
+			if not frappe.db.exists("Brand", brand_name):
+				scanner = frappe.get_doc("EAN Scanner", "EAN Scanner")
+				scanner._create_brand(brand_name)
+			item.brand = brand_name
+			
+		# Update image if available
+		if product.get("image_url"):
+			scanner = frappe.get_doc("EAN Scanner", "EAN Scanner")
+			scanner._attach_image_to_item(item, product["image_url"])
+			
+		# Save the item
+		item.save(ignore_permissions=True)
+		
+		frappe.msgprint(f"Item {item_code} updated successfully with data from Open Food Facts")
+		return True
+		
+	except Exception as e:
+		frappe.log_error(f"Error updating item from Open Food Facts: {e}", "EAN Scanner Error")
+		frappe.msgprint(f"Error updating item: {str(e)}")
+		return False

@@ -5,6 +5,8 @@ app_description = "Scan European Article Number (EAN) and automatically create n
 app_email = "samy4sam@icloud.com"
 app_license = "mit"
 
+
+doctype_js = {"Item": "ean_scanner/doctype/stock/item/item.js"}
 # Apps
 # ------------------
 
