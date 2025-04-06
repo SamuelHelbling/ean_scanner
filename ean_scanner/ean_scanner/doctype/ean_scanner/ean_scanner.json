@@ -1,0 +1,72 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-06 12:16:04.895414",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "create_not_existing_item",
+  "warehouse",
+  "section_break_enyr",
+  "check_in_scan",
+  "column_break_waxx",
+  "check_out_scan"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "create_not_existing_item",
+   "fieldtype": "Check",
+   "label": "Create not existing Item"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "check_in_scan",
+   "fieldtype": "Data",
+   "label": "Check-In Item",
+   "options": "Barcode"
+  },
+  {
+   "fieldname": "section_break_enyr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_waxx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "check_out_scan",
+   "fieldtype": "Data",
+   "label": "Check-Out Item",
+   "options": "Barcode"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-04-06 12:26:18.485304",
+ "modified_by": "Administrator",
+ "module": "EAN Scanner",
+ "name": "EAN Scanner",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

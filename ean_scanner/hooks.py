@@ -2,7 +2,7 @@ app_name = "ean_scanner"
 app_title = "EAN Scanner"
 app_publisher = "Samuel Helbling"
 app_description = "Scan European Article Number (EAN) and automatically create new ERPNext Item"
-app_email = "samuel.helbling@icloud.com"
+app_email = "samy4sam@icloud.com"
 app_license = "mit"
 
 # Apps

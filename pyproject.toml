@@ -1,7 +1,7 @@
 [project]
 name = "ean_scanner"
 authors = [
-    { name = "Samuel Helbling", email = "samuel.helbling@icloud.com"}
+    { name = "Samuel Helbling", email = "samy4sam@icloud.com"}
 ]
 description = "Scan European Article Number (EAN) and automatically create new ERPNext Item"
 requires-python = ">=3.10"
